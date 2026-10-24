@@ -5,6 +5,7 @@ const { ROLES, SETUPS, GameError } = require('./game');
 
 const BOT_NAMES = ['Lancelot', 'Gawain', 'Galahad', 'Tristan', 'Bedivere', 'Kay', 'Gareth', 'Bors', 'Lamorak', 'Percy'];
 const DELAY_MS = Number(process.env.BOT_DELAY_MS) || 1500;
+const WAIT_FOR_REVEAL = process.env.BOT_WAIT_REVEAL !== '0';
 
 const chance = (p) => Math.random() < p;
 const pick = (arr) => arr[crypto.randomInt(arr.length)];
@@ -133,7 +134,7 @@ function runBots(game) {
         } catch (e) {
           console.error(`bot ${p.name} failed to ${action}:`, e.message);
         }
-      }, DELAY_MS * (0.6 + Math.random()));
+      }, DELAY_MS * (0.6 + Math.random()) + (WAIT_FOR_REVEAL ? Math.max(0, game.revealUntil - Date.now()) : 0));
     }
   });
 }

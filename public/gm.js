@@ -15,7 +15,7 @@ fetch('/api/info').then((r) => r.json()).then((info) => {
   if (state) render();
 });
 
-subscribe('/api/events', { onState: (s) => { state = s; render(); } });
+subscribe('/api/events', { onState: (s) => { state = s; render(); maybeReveal(s); } });
 
 function render() {
   const s = state;
@@ -35,7 +35,8 @@ function lobbyHtml(s) {
   return `<div class="grid">
     <div>
       <section class="card center">
-        <h3>Players join at</h3>
+        <h3>Scan to join</h3>
+        ${joinUrls.length ? qrSvg(joinUrls[0]) : ''}
         ${joinUrls.map((u) => `<div class="join-url">${esc(u)}</div>`).join('')}
       </section>
       <section class="card">
@@ -54,6 +55,7 @@ function lobbyHtml(s) {
         <p class="muted">Merlin and the Assassin are always in play. Remaining seats are Loyal Servants and Minions.</p>
         ${ROLE_OPTIONS.map((r) => `<label class="opt">
           <input type="checkbox" data-opt="${r.key}" ${s.options[r.key] ? 'checked' : ''}>
+          ${roleArt(r.key, r.team, 44)}
           <span><b class="${r.team}">${r.name}</b><br><span class="muted">${r.desc}</span></span></label>`).join('')}
       </section>
       <section class="card">
@@ -78,15 +80,8 @@ function boardHtml(s) {
       <section class="card">
         <div class="phase">${PHASE_TEXT[s.phase]}</div>
         ${status ? `<h2>${status}</h2>` : ''}
-        ${questTrack(s)}${rejectTrack(s)}
+        ${roundTable(s)}
       </section>
-      <section class="card"><h3>Seating order</h3><ul class="players">${s.players.map((p) => `
-        <li class="${p.connected ? '' : 'offline'}">
-          <span class="pname">${esc(p.name)}</span>
-          ${p.leader ? '<em class="tag leader">leader</em>' : ''}
-          ${p.onTeam ? '<em class="tag team">team</em>' : ''}
-          ${p.voted || p.played ? '<em class="tag done">done</em>' : ''}
-        </li>`).join('')}</ul></section>
       <section class="card">
         <button class="${s.phase === 'over' ? '' : 'secondary'}" data-act="end" style="width:100%">
           ${s.phase === 'over' ? 'Back to lobby (same players)' : 'Abort game'}</button>
@@ -98,6 +93,22 @@ function boardHtml(s) {
       ${logHtml(s)}
     </div>
   </div>`;
+}
+
+// Black-on-white QR code as inline SVG (phones scan dark-on-light most reliably).
+function qrSvg(text) {
+  const qr = qrcode(0, 'M');
+  qr.addData(text);
+  qr.make();
+  const n = qr.getModuleCount();
+  const quiet = 4;
+  let path = '';
+  for (let r = 0; r < n; r++) {
+    for (let c = 0; c < n; c++) if (qr.isDark(r, c)) path += `M${c + quiet} ${r + quiet}h1v1h-1z`;
+  }
+  const size = n + quiet * 2;
+  return `<svg class="qr" viewBox="0 0 ${size} ${size}" shape-rendering="crispEdges" role="img" aria-label="QR code for ${esc(text)}">
+    <rect width="${size}" height="${size}" fill="#fff"/><path d="${path}" fill="#000"/></svg>`;
 }
 
 function bind() {

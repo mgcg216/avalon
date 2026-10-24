@@ -1,6 +1,7 @@
 'use strict';
 
 process.env.BOT_DELAY_MS = '1';
+process.env.BOT_WAIT_REVEAL = '0';
 
 const test = require('node:test');
 const assert = require('node:assert');

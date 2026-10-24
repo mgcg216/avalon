@@ -37,7 +37,11 @@ function serveFile(res, file) {
   if (!full.startsWith(PUBLIC_DIR + path.sep)) return sendJson(res, 404, { error: 'Not found' });
   fs.readFile(full, (err, data) => {
     if (err) return sendJson(res, 404, { error: 'Not found' });
-    res.writeHead(200, { 'Content-Type': MIME[path.extname(full)] || 'application/octet-stream' });
+    // no-cache: browsers revalidate every load, so updated pages show up without a hard refresh.
+    res.writeHead(200, {
+      'Content-Type': MIME[path.extname(full)] || 'application/octet-stream',
+      'Cache-Control': 'no-cache',
+    });
     res.end(data);
   });
 }
@@ -63,9 +67,13 @@ function readBody(req) {
   });
 }
 
+// Virtual interfaces (Docker, VMs) aren't reachable from phones on the Wi-Fi.
+const VIRTUAL_IFACE = /^(docker|br-|veth|virbr|vmnet|vboxnet|tun|tap|zt|tailscale)/;
+
 function lanUrls(port) {
   const urls = [];
-  for (const ifaces of Object.values(os.networkInterfaces())) {
+  for (const [name, ifaces] of Object.entries(os.networkInterfaces())) {
+    if (VIRTUAL_IFACE.test(name)) continue;
     for (const i of ifaces || []) {
       if (i.family === 'IPv4' && !i.internal) urls.push(`http://${i.address}:${port}`);
     }

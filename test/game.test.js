@@ -170,3 +170,14 @@ test('ending a game returns everyone to the lobby', () => {
   ctx.g.start();
   assert.strictEqual(ctx.g.phase, 'team');
 });
+
+test('quest result includes shuffled cards and slower reveals for later quests', () => {
+  const ctx = setup(5);
+  runQuest(ctx, false);
+  const q = ctx.g.publicState().lastQuest;
+  assert.strictEqual(q.cards.length, q.team.length);
+  assert.strictEqual(q.cards.filter((c) => !c).length, q.fails);
+  assert.ok(q.ageMs >= 0 && ctx.g.revealUntil > Date.now());
+  const { revealTiming } = require('../src/game');
+  assert.ok(revealTiming(5, 3).total > revealTiming(1, 3).total);
+});

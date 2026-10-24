@@ -43,7 +43,7 @@ function showJoin(msg) {
 
 function connect() {
   es = subscribe(`/api/events?token=${encodeURIComponent(token)}`, {
-    onState: (s) => { state = s; render(); },
+    onState: (s) => { state = s; render(); maybeReveal(s); },
     onGone: () => forget('You are no longer in the game. Join again.'),
   });
 }
@@ -69,13 +69,12 @@ function render() {
   } else if (!me.inGame) {
     html = `<section class="card center"><h3>A game is in progress</h3>
       <p class="muted">You will be able to play when the game master starts the next game.</p></section>`
-      + `<section class="card">${questTrack(s)}${rejectTrack(s)}</section>`;
+      + `<section class="card">${roundTable(s)}</section>`;
   } else {
     if (s.phase === 'over') html += revealHtml(s);
     html += roleHtml(me);
     if (s.phase !== 'over') html += actionHtml(s, me);
-    html += `<section class="card">${questTrack(s)}${rejectTrack(s)}</section>`;
-    html += playersHtml(s);
+    html += `<section class="card">${roundTable(s, me.id)}</section>`;
     html += lastVoteHtml(s) + lastQuestHtml(s);
   }
   $('#app').innerHTML = html;
@@ -97,6 +96,7 @@ function lobbyHtml(s) {
 function roleHtml(me) {
   if (!roleShown) {
     return `<section class="card role" data-act="toggle-role">
+      ${roleArt('hidden', 'neutral', 140)}
       <div class="name">Your role is hidden</div>
       <div class="hint">Tap to reveal. Keep your screen private!</div></section>`;
   }
@@ -106,6 +106,7 @@ function roleHtml(me) {
       ? '<p class="muted">You see no one.</p>' : '';
   return `<section class="card role ${me.team}" data-act="toggle-role">
     <div class="team ${me.team}">${me.team === 'good' ? 'Loyal to Arthur' : 'Minion of Mordred'}</div>
+    ${roleArt(me.role, me.team, 140)}
     <div class="name">${esc(me.roleName)}</div>
     <p>${esc(me.desc)}</p>
     ${knows}
@@ -166,16 +167,6 @@ function actionHtml(s, me) {
     }
   }
   return `<section class="card"><div class="phase">${PHASE_TEXT[s.phase]}</div>${body}</section>`;
-}
-
-function playersHtml(s) {
-  return `<section class="card"><h3>Seating order</h3><ul class="players">${s.players.map((p) => `
-    <li class="${p.connected ? '' : 'offline'}">
-      <span class="pname">${esc(p.name)}${p.id === s.me.id ? ' (you)' : ''}</span>
-      ${p.leader ? '<em class="tag leader">leader</em>' : ''}
-      ${p.onTeam ? '<em class="tag team">team</em>' : ''}
-      ${p.voted || p.played ? '<em class="tag done">done</em>' : ''}
-    </li>`).join('')}</ul></section>`;
 }
 
 // ---------- events ----------

@@ -55,6 +55,21 @@ const OPTIONAL_ROLES = ['percival', 'morgana', 'mordred', 'oberon'];
 
 class GameError extends Error {}
 
+// Pacing for the quest-card reveal animation (ms). Later quests are slower and more dramatic.
+function revealTiming(questNo, cardCount) {
+  const k = questNo - 1;
+  const t = {
+    intro: 1200 + 500 * k, // before the first card lifts
+    lift: 450 + 150 * k, // card trembles before flipping
+    step: 1000 + 350 * k, // between flips
+    lastHold: 800 + 700 * k, // extra suspense before the final card
+    flip: 700 + 100 * k, // flip animation
+    result: 2500, // verdict banner
+  };
+  t.total = t.intro + t.step * (cardCount - 1) + t.lastHold + t.flip + t.result;
+  return t;
+}
+
 function shuffle(arr) {
   const a = arr.slice();
   for (let i = a.length - 1; i > 0; i--) {
@@ -140,6 +155,8 @@ class Game {
 
   resetToLobby() {
     this.phase = 'lobby'; // lobby | team | vote | quest | assassin | over
+    this.gameId = null;
+    this.revealUntil = 0;
     this.order = [];
     this.roles = {};
     this.quests = [];
@@ -196,6 +213,7 @@ class Game {
     if (this.inGame()) throw new GameError('Game already started');
     const roles = shuffle(buildRoles(this.players.length, this.options));
     this.resetToLobby();
+    this.gameId = newId();
     this.order = shuffle(this.players.map((p) => p.id));
     this.order.forEach((id, i) => { this.roles[id] = roles[i]; });
     const setup = SETUPS[this.order.length];
@@ -295,7 +313,18 @@ class Game {
     q.fails = Object.values(this.cards).filter((c) => !c).length;
     q.result = q.fails >= q.failsNeeded ? 'fail' : 'success';
     q.team = this.team.slice();
-    this.lastQuest = { quest: this.questIdx + 1, team: q.team, fails: q.fails, result: q.result };
+    const timing = revealTiming(this.questIdx + 1, q.team.length);
+    this.lastQuest = {
+      quest: this.questIdx + 1,
+      team: q.team,
+      fails: q.fails,
+      failsNeeded: q.failsNeeded,
+      result: q.result,
+      cards: shuffle(Object.values(this.cards)), // shuffled so card order says nothing about who played what
+      timing,
+      resolvedAt: Date.now(),
+    };
+    this.revealUntil = Date.now() + timing.total;
     this.addLog(`Quest ${this.questIdx + 1} ${q.result === 'success' ? 'SUCCEEDED' : 'FAILED'} (${q.fails} fail card${q.fails === 1 ? '' : 's'})`);
 
     const successes = this.quests.filter((x) => x.result === 'success').length;
@@ -403,14 +432,15 @@ class Game {
       rejects: this.rejects,
       team: this.team.slice(),
       lastVote: this.lastVote,
-      lastQuest: this.lastQuest,
+      gameId: this.gameId,
+      lastQuest: this.lastQuest && { ...this.lastQuest, ageMs: Date.now() - this.lastQuest.resolvedAt },
       log: this.log.slice(-30),
       winner: this.winner,
       reason: this.reason,
       assassinTarget: this.assassinTarget,
       // Roles are only revealed once the game is over.
       reveal: this.phase === 'over'
-        ? this.order.map((id) => ({ id, name: this.name(id), role: ROLES[this.roles[id]].name, team: ROLES[this.roles[id]].team }))
+        ? this.order.map((id) => ({ id, name: this.name(id), key: this.roles[id], role: ROLES[this.roles[id]].name, team: ROLES[this.roles[id]].team }))
         : null,
     };
   }
@@ -440,4 +470,4 @@ class Game {
   }
 }
 
-module.exports = { Game, GameError, ROLES, SETUPS, buildRoles, MIN_PLAYERS, MAX_PLAYERS };
+module.exports = { Game, GameError, ROLES, SETUPS, buildRoles, revealTiming, MIN_PLAYERS, MAX_PLAYERS };
