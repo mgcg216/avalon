@@ -75,7 +75,7 @@ function playerName(s, id) {
 function questTrack(s) {
   return `<div class="quests">${s.quests.map((q, i) => {
     const cls = q.result ? q.result : (i === s.questIdx && s.phase !== 'over' && s.phase !== 'assassin' ? 'current' : '');
-    const label = q.result === 'success' ? '✓' : q.result === 'fail' ? '✗' : q.size;
+    const label = q.result ? teamSeal(q.result === 'success' ? 'good' : 'evil', '100%') : q.size;
     const sub = q.result === 'fail' ? `${q.fails} fail${q.fails === 1 ? '' : 's'}`
       : q.failsNeeded > 1 ? '2 fails' : `Quest ${i + 1}`;
     return `<div class="quest ${cls}" title="Quest ${i + 1}: ${q.size} knights">
@@ -140,7 +140,7 @@ function lastQuestHtml(s) {
 function revealHtml(s) {
   if (!s.reveal) return '';
   return `<section class="card">
-    <h2 class="banner ${s.winner}">${s.winner === 'good' ? 'Good wins!' : 'Evil wins!'}</h2>
+    <h2 class="banner ${s.winner}">${teamSeal(s.winner, 44)} ${s.winner === 'good' ? 'Good wins!' : 'Evil wins!'}</h2>
     <p class="center">${esc(s.reason)}</p>
     <ul class="votes reveal">${s.reveal.map((r) => `<li>${roleArt(r.key, r.team, 36)}
       <span class="pname">${esc(r.name)}${r.id === s.assassinTarget ? ' <em class="tag">assassinated</em>' : ''}</span>
@@ -154,20 +154,6 @@ function logHtml(s) {
 }
 
 // ---------- quest card reveal ----------
-
-const CARD_ART = {
-  success: `<svg viewBox="0 0 100 100" class="card-art" aria-hidden="true">
-    <path d="M28 18 H72 C72 44 62 58 50 60 C38 58 28 44 28 18Z" fill="#f4d77a" stroke="#8a6a22" stroke-width="2"/>
-    <path d="M34 24 H66 C65 40 58 50 50 52Z" fill="#fff3c4" opacity=".5"/>
-    <rect x="46" y="60" width="8" height="16" fill="#d9b45a"/>
-    <path d="M32 84 C32 76 68 76 68 84Z" fill="#f4d77a" stroke="#8a6a22" stroke-width="2"/></svg>`,
-  fail: `<svg viewBox="0 0 100 100" class="card-art" aria-hidden="true">
-    <path d="M50 14 C30 14 20 28 20 44 C20 56 28 62 32 66 V80 H68 V66 C72 62 80 56 80 44 C80 28 70 14 50 14Z" fill="#ece3d0" stroke="#5a1010" stroke-width="2"/>
-    <ellipse cx="38" cy="46" rx="8" ry="9" fill="#2a0808"/><ellipse cx="62" cy="46" rx="8" ry="9" fill="#2a0808"/>
-    <path d="M50 54 L45 64 H55Z" fill="#2a0808"/>
-    <path d="M40 72 V80 M47 72 V80 M53 72 V80 M60 72 V80" stroke="#2a0808" stroke-width="2"/>
-    <path d="M58 16 L52 32 L58 38" stroke="#5a1010" stroke-width="2" fill="none"/></svg>`,
-};
 
 const playedReveals = new Set();
 
@@ -197,7 +183,7 @@ function playReveal(q) {
       <div class="qcards">${q.cards.map((ok) => `
         <div class="qcard ${ok ? 'is-success' : 'is-fail'}"><div class="qinner">
           <div class="qface qback">${roleArt('hidden', 'neutral', '70%')}</div>
-          <div class="qface qfront">${ok ? CARD_ART.success : CARD_ART.fail}<span>${ok ? 'Success' : 'Fail'}</span></div>
+          <div class="qface qfront">${chaliceArt(ok)}<span>${ok ? 'Success' : 'Fail'}</span></div>
         </div></div>`).join('')}</div>
       <div class="tally">Success <b class="t-ok">0</b> · Fail <b class="t-fail">0</b></div>
       <div class="reveal-result"></div>

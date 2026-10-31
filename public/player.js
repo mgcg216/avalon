@@ -111,8 +111,7 @@ function lobbyHtml(s) {
 function roleHtml(me) {
   if (!roleShown) {
     return `<section class="card role" data-act="toggle-role">
-      ${roleArt('hidden', 'neutral', 140)}
-      <div class="name">Your role is hidden</div>
+      ${roleCard('hidden', 'neutral', 'Your role is hidden', 'Secret loyalty')}
       <div class="hint">Tap to reveal. Keep your screen private!</div></section>`;
   }
   const knows = me.knows.length
@@ -120,9 +119,7 @@ function roleHtml(me) {
     : (me.role === 'merlin' || me.role === 'percival' || me.team === 'evil') && me.role !== 'oberon'
       ? '<p class="muted">You see no one.</p>' : '';
   return `<section class="card role ${me.team}" data-act="toggle-role">
-    <div class="team ${me.team}">${me.team === 'good' ? 'Loyal to Arthur' : 'Minion of Mordred'}</div>
-    ${roleArt(me.role, me.team, 140)}
-    <div class="name">${esc(me.roleName)}</div>
+    ${roleCard(me.role, me.team, esc(me.roleName), me.team === 'good' ? 'Loyal to Arthur' : 'Minion of Mordred')}
     <p>${esc(me.desc)}</p>
     ${knows}
     <div class="hint">Tap to hide</div></section>`;
@@ -162,8 +159,8 @@ function actionHtml(s, me) {
     const pending = s.team.filter((id) => !s.players.find((p) => p.id === id).played);
     if (s.team.includes(me.id) && !me.playedCard) {
       body = `<h3>You are on quest ${questNo}. Play your card secretly.</h3>
-        <div class="row"><button class="success" data-act="quest" data-v="1">Success</button>
-        <button class="fail" data-act="quest" data-v="0" ${me.team === 'good' ? 'disabled' : ''}>Fail</button></div>
+        <div class="row"><button class="success" data-act="quest" data-v="1">${chaliceArt(true)}Success</button>
+        <button class="fail" data-act="quest" data-v="0" ${me.team === 'good' ? 'disabled' : ''}>${chaliceArt(false)}Fail</button></div>
         ${me.team === 'good' ? '<p class="muted">Loyal servants of Arthur must play Success.</p>' : ''}`;
     } else {
       body = `<h3>Quest ${questNo} in progress: ${teamNames}</h3>

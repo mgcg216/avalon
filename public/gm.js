@@ -163,8 +163,8 @@ function introSlides(s) {
   return [
     `<div class="reveal-title">The Roles</div>
       <div class="intro-sides">
-        <div><h2 class="good">Good (${count('good')})</h2><ul class="intro-roles">${introRoles(s, 'good')}</ul></div>
-        <div><h2 class="evil">Evil (${count('evil')})</h2><ul class="intro-roles">${introRoles(s, 'evil')}</ul></div>
+        <div><h2 class="good">${teamSeal('good', 32)} Good (${count('good')})</h2><ul class="intro-roles">${introRoles(s, 'good')}</ul></div>
+        <div><h2 class="evil">${teamSeal('evil', 32)} Evil (${count('evil')})</h2><ul class="intro-roles">${introRoles(s, 'evil')}</ul></div>
       </div>
       <p class="intro-text">Check your phone for your secret role, and keep it to yourself.</p>`,
 
