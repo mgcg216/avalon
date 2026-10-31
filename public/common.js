@@ -59,6 +59,7 @@ function subscribe(url, { onState, onGone }) {
 
 const PHASE_TEXT = {
   lobby: 'Waiting in the lobby',
+  intro: 'The game is about to begin',
   team: 'Leader is choosing a team',
   vote: 'Everyone votes on the team',
   quest: 'The team is on a quest',

@@ -15,7 +15,7 @@ fetch('/api/info').then((r) => r.json()).then((info) => {
   if (state) render();
 });
 
-subscribe('/api/events', { onState: (s) => { state = s; render(); maybeReveal(s); } });
+subscribe('/api/events', { onState: (s) => { state = s; render(); maybeReveal(s); syncIntro(s); } });
 
 function render() {
   const s = state;
@@ -30,7 +30,7 @@ function lobbyHtml(s) {
   let status;
   if (n < s.minPlayers) status = `<p class="muted">Need at least ${s.minPlayers} players (${s.minPlayers - n} more).</p>`;
   else if (s.preview && s.preview.error) status = `<p class="evil">${esc(s.preview.error)}</p>`;
-  else status = `<p>Roles in play: ${s.preview.roles.map((r) => esc(r)).join(', ')}</p>`;
+  else status = `<p>Roles in play: ${s.preview.roles.map((r) => esc(r.name)).join(', ')}</p>`;
 
   return `<div class="grid">
     <div>
@@ -127,4 +127,112 @@ function bind() {
       }
     };
   });
+}
+
+// ---------- game start intro ----------
+
+// One line per role, safe to show the whole table.
+const ROLE_SUMMARY = {
+  merlin: 'Knows who is evil, but must stay hidden.',
+  servant: 'Knows only their own loyalty.',
+  assassin: 'Gets one chance to name Merlin if good wins three quests.',
+  minion: 'Knows the other evil players.',
+  ...Object.fromEntries(ROLE_OPTIONS.map((r) => [r.key, r.desc])),
+};
+
+// How long each slide stays up. The game starts when the last one runs out.
+const INTRO_SLIDE_MS = [25000, 30000];
+
+let intro = null; // { gameId, el, slides, index, timer }
+
+function introRoles(s, team) {
+  const counts = new Map();
+  for (const r of s.preview.roles) {
+    if (r.team !== team) continue;
+    const seen = counts.get(r.key);
+    counts.set(r.key, { ...r, n: seen ? seen.n + 1 : 1 });
+  }
+  return [...counts.values()].map((r) => `<li>${roleArt(r.key, r.team, 44)}
+    <span><b>${esc(r.name)}</b>${r.n > 1 ? ` <span class="muted">× ${r.n}</span>` : ''}<br>
+    <span class="muted">${ROLE_SUMMARY[r.key]}</span></span></li>`).join('');
+}
+
+function introSlides(s) {
+  const count = (team) => s.preview.roles.filter((r) => r.team === team).length;
+  const twoFails = s.quests.some((q) => q.failsNeeded > 1);
+  return [
+    `<div class="reveal-title">The Roles</div>
+      <div class="intro-sides">
+        <div><h2 class="good">Good (${count('good')})</h2><ul class="intro-roles">${introRoles(s, 'good')}</ul></div>
+        <div><h2 class="evil">Evil (${count('evil')})</h2><ul class="intro-roles">${introRoles(s, 'evil')}</ul></div>
+      </div>
+      <p class="intro-text">Check your phone for your secret role, and keep it to yourself.</p>`,
+
+    `<div class="reveal-title">How to Play</div>
+      <ol class="intro-steps">
+        <li><b>The leader</b> picks a team for the quest.</li>
+        <li><b>Everyone votes</b> on that team, in the open. Five rejected teams in a row and evil wins.</li>
+        <li><b>The team</b> secretly plays Success or Fail. Only evil can play Fail, and one Fail sinks the quest${twoFails ? ' (quest 4 takes two)' : ''}.</li>
+      </ol>
+      <p class="intro-text">First side to three quests wins. But if good gets there, the Assassin has one chance to name Merlin and steal the victory.</p>`,
+  ];
+}
+
+// Slides live in their own overlay because render() rebuilds #app on every state update.
+function syncIntro(s) {
+  if (s.phase !== 'intro') return closeIntro();
+  if (intro && intro.gameId === s.gameId) return showSkipRequests(s);
+  closeIntro();
+
+  const el = document.createElement('div');
+  el.className = 'reveal-overlay intro';
+  el.innerHTML = `<div class="reveal-box"><div class="intro-stage"></div>
+    <div class="intro-actions">
+      <button class="intro-next"></button>
+      <button class="secondary intro-skip">Skip intro</button>
+    </div>
+    <p class="intro-skips muted"></p></div>`;
+  document.body.appendChild(el);
+  intro = { gameId: s.gameId, el, slides: introSlides(s), index: 0, timer: null };
+
+  const buttons = el.querySelectorAll('button');
+  const begin = async () => {
+    buttons.forEach((b) => { b.disabled = true; });
+    await act('/api/begin');
+    buttons.forEach((b) => { b.disabled = false; });
+  };
+  el.querySelector('.intro-next').onclick = () => {
+    if (intro.index < intro.slides.length - 1) showIntroSlide(intro.index + 1);
+    else begin();
+  };
+  el.querySelector('.intro-skip').onclick = begin;
+  showIntroSlide(0);
+  showSkipRequests(s);
+}
+
+function showSkipRequests(s) {
+  const { asked, needed } = s.skip;
+  intro.el.querySelector('.intro-skips').textContent = asked ? `${asked} of ${needed} players asked to skip` : '';
+}
+
+function showIntroSlide(index) {
+  clearTimeout(intro.timer);
+  intro.index = index;
+  const last = index === intro.slides.length - 1;
+  const ms = INTRO_SLIDE_MS[index];
+  intro.el.querySelector('.intro-stage').innerHTML = `<div class="intro-slide">${intro.slides[index]}</div>
+    <div class="intro-timer" style="--ms:${ms}ms"></div>`;
+  // Quiet on purpose: a second GM window may have started the game first.
+  intro.timer = setTimeout(() => (last ? api('/api/begin').catch(() => {}) : showIntroSlide(index + 1)), ms);
+  intro.el.querySelector('.intro-next').textContent = last ? 'Start the game' : 'Next';
+  intro.el.querySelector('.intro-skip').hidden = last;
+}
+
+function closeIntro() {
+  if (!intro) return;
+  const { el, timer } = intro;
+  intro = null;
+  clearTimeout(timer);
+  el.classList.add('closing');
+  setTimeout(() => el.remove(), 400);
 }

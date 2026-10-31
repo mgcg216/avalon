@@ -164,6 +164,10 @@ const playerRoutes = {
     game.leave(body.token);
     return { ok: true };
   },
+  'POST /api/skip': ({ body }) => {
+    game.requestSkip(body.token);
+    return { ok: true };
+  },
   'POST /api/propose': ({ body }) => {
     game.propose(body.token, body.team);
     return { ok: true };
@@ -190,6 +194,7 @@ const playerRoutes = {
     openStream(req, res, () => game.playerView(token), () => {
       if (player) {
         player.connections--;
+        game.maybeSkip();
         game.changed();
       }
     });
@@ -205,6 +210,10 @@ const gmRoutes = {
   'POST /api/start': () => {
     game.start();
     console.log(`Game started with ${game.order.length} players`);
+    return { ok: true };
+  },
+  'POST /api/begin': () => {
+    game.begin();
     return { ok: true };
   },
   'POST /api/end': () => {

@@ -10,6 +10,7 @@ function setup(n, options) {
   const players = [];
   for (let i = 0; i < n; i++) players.push(g.join(`P${i}`));
   g.start();
+  g.begin();
   const tok = (id) => players.find((p) => p.id === id).token;
   const teamOf = (team) => g.order.filter((id) => ROLES[g.roles[id]].team === team);
   return { g, players, tok, teamOf };
@@ -168,7 +169,72 @@ test('ending a game returns everyone to the lobby', () => {
   assert.strictEqual(ctx.g.phase, 'lobby');
   assert.strictEqual(ctx.g.players.length, 5);
   ctx.g.start();
-  assert.strictEqual(ctx.g.phase, 'team');
+  assert.strictEqual(ctx.g.phase, 'intro');
+});
+
+test('the intro shows each player their role and holds play until begin', () => {
+  const g = new Game();
+  const players = ['A', 'B', 'C', 'D', 'E', 'F', 'G'].map((n) => g.join(n));
+  assert.throws(() => g.begin(), GameError);
+  g.start();
+  assert.strictEqual(g.phase, 'intro');
+
+  for (const p of players) {
+    const v = g.playerView(p.token);
+    assert.strictEqual(v.me.role, g.roles[p.id]);
+    assert.ok(v.me.desc);
+    assert.strictEqual(v.reveal, null);
+  }
+  const inPlay = g.publicState().preview.roles.map((r) => r.key).sort();
+  assert.deepStrictEqual(inPlay, Object.values(g.roles).sort());
+
+  const leader = players.find((p) => p.id === g.leaderId);
+  assert.throws(() => g.propose(leader.token, g.order.slice(0, 2)), /Not time/);
+
+  g.begin();
+  assert.strictEqual(g.phase, 'team');
+  assert.throws(() => g.begin(), GameError);
+  g.propose(leader.token, g.order.slice(0, 2));
+  assert.strictEqual(g.phase, 'vote');
+});
+
+test('the intro skips once every connected human asks; bots and absent players do not count', () => {
+  const g = new Game();
+  const [a, b, c] = ['A', 'B', 'C'].map((n) => g.join(n));
+  for (const n of ['Bot1', 'Bot2']) g.join(n, true);
+  a.connections = b.connections = c.connections = 1;
+  g.start();
+  assert.deepStrictEqual(g.publicState().skip, { asked: 0, needed: 3 });
+
+  g.requestSkip(a.token);
+  g.requestSkip(a.token); // asking twice counts once
+  assert.deepStrictEqual(g.publicState().skip, { asked: 1, needed: 3 });
+  assert.strictEqual(g.playerView(a.token).me.skipRequested, true);
+  assert.strictEqual(g.playerView(b.token).me.skipRequested, false);
+
+  c.connections = 0; // walked away
+  g.maybeSkip();
+  assert.strictEqual(g.phase, 'intro');
+  g.requestSkip(b.token);
+  assert.strictEqual(g.phase, 'team');
+  assert.strictEqual(g.publicState().skip, null);
+  assert.throws(() => g.requestSkip(c.token), /intro is over/);
+});
+
+test('a disconnect can finish a skip, but not one nobody asked for', () => {
+  const g = new Game();
+  const [a, b] = ['A', 'B'].map((n) => g.join(n));
+  for (const n of ['Bot1', 'Bot2', 'Bot3']) g.join(n, true);
+  a.connections = b.connections = 1;
+  g.start();
+  a.connections = b.connections = 0;
+  g.maybeSkip();
+  assert.strictEqual(g.phase, 'intro');
+  a.connections = b.connections = 1;
+  g.requestSkip(a.token);
+  b.connections = 0;
+  g.maybeSkip();
+  assert.strictEqual(g.phase, 'team');
 });
 
 test('quest result includes shuffled cards and slower reveals for later quests', () => {

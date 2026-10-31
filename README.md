@@ -2,8 +2,8 @@
 
 A local-network server for **The Resistance: Avalon**. Players join from their phones, and a game master screen runs the lobby and shows the public board.
 
-- **Players:** `http://<server-ip>:3000`. Enter a name to join. When the game starts, you see your secret role and what it knows. Propose teams, vote, and play quest cards from your phone.
-- **Game master / board:** `http://localhost:3001`. See who joined, pick the optional roles, start or abort a game, and show the board (quest track, rejected-team count, vote results, log). This works well on a TV.
+- **Players:** `http://<server-ip>:3000`. Enter a name to join. When the game starts, your phone shows your secret role (tap to reveal) and what it knows while the board plays the intro. Once every connected human player taps Skip intro, the game starts. Propose teams, vote, and play quest cards from your phone.
+- **Game master / board:** `http://localhost:3001`. See who joined, pick the optional roles, start or abort a game, play the intro (a quick overview of the roles and how to play; it advances on its own and starts the game when it ends, or you can skip it), and show the board (quest track, rejected-team count, vote results, log). This works well on a TV.
 
 It has **no dependencies**: only Node's built-in modules (Node 18+), so it runs as-is on a Raspberry Pi 3.
 

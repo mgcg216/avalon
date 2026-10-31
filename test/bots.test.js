@@ -14,6 +14,7 @@ function playBotGame(n, options) {
   runBots(g);
   for (let i = 0; i < n; i++) addBot(g);
   g.start();
+  g.begin();
   return new Promise((resolve, reject) => {
     const timer = setTimeout(() => reject(new Error(`stuck in phase ${g.phase}`)), 5000);
     g.onChange(() => {
@@ -35,6 +36,20 @@ test('bots finish games at every player count', async () => {
   }
   console.log('bot results', wins);
   assert.strictEqual(wins.good + wins.evil, 30);
+});
+
+test('bots wait for the intro to end', async () => {
+  const g = new Game();
+  runBots(g);
+  for (let i = 0; i < 5; i++) addBot(g);
+  g.start();
+  await new Promise((resolve) => setTimeout(resolve, 50));
+  assert.strictEqual(g.phase, 'intro');
+  g.begin();
+  await new Promise((resolve) => setTimeout(resolve, 50));
+  assert.notStrictEqual(g.phase, 'intro');
+  assert.ok(g.team.length > 0 || g.lastVote);
+  g.endGame();
 });
 
 test('bots are flagged and shown as connected', () => {

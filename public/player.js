@@ -8,6 +8,7 @@ let token = localStorage.getItem(TOKEN_KEY);
 let state = null;
 let es = null;
 let roleShown = false;
+let lastPhase = null;
 let selected = new Set();
 let selectionKey = '';
 
@@ -62,6 +63,10 @@ function render() {
     selected = new Set();
   }
 
+  // Play starts with phones out for voting, so don't leave the role on screen.
+  if (lastPhase === 'intro' && s.phase !== 'intro') roleShown = false;
+  lastPhase = s.phase;
+
   let html = '';
   if (s.phase === 'lobby') {
     roleShown = false; // start each new game with the role hidden
@@ -70,6 +75,16 @@ function render() {
     html = `<section class="card center"><h3>A game is in progress</h3>
       <p class="muted">You will be able to play when the game master starts the next game.</p></section>`
       + `<section class="card">${roundTable(s)}</section>`;
+  } else if (s.phase === 'intro') {
+    html = `<section class="card center">
+        <div class="phase">${PHASE_TEXT.intro}</div>
+        <h2>Watch the board</h2>
+        <p class="muted">While the rules are shown, check your role below. It is yours alone.</p>
+        ${me.skipRequested
+          ? `<p class="muted">You asked to skip (${s.skip.asked} of ${s.skip.needed} players).</p>`
+          : `<button class="secondary small" data-act="skip-intro">Skip intro</button>
+             <p class="hint muted">The intro skips once every player asks.</p>`}
+      </section>${roleHtml(me)}`;
   } else {
     if (s.phase === 'over') html += revealHtml(s);
     html += roleHtml(me);
@@ -196,6 +211,9 @@ function handle(action, el) {
     case 'toggle-role':
       roleShown = !roleShown;
       render();
+      break;
+    case 'skip-intro':
+      act('/api/skip', { token });
       break;
     case 'leave':
       act('/api/leave', { token }).then((r) => r && forget());

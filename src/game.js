@@ -154,9 +154,10 @@ class Game {
   // ---- lobby ----
 
   resetToLobby() {
-    this.phase = 'lobby'; // lobby | team | vote | quest | assassin | over
+    this.phase = 'lobby'; // lobby | intro | team | vote | quest | assassin | over
     this.gameId = null;
     this.revealUntil = 0;
+    this.skips = {}; // player id -> asked to skip the intro
     this.order = [];
     this.roles = {};
     this.quests = [];
@@ -225,9 +226,38 @@ class Game {
       team: null,
     }));
     this.leaderIdx = crypto.randomInt(this.order.length);
-    this.phase = 'team';
+    this.phase = 'intro';
     this.addLog(`Game started with ${this.order.length} players. ${this.name(this.leaderId)} leads first.`);
     this.changed();
+  }
+
+  // Ends the intro: play starts with the first leader choosing a team.
+  begin() {
+    if (this.phase !== 'intro') throw new GameError('The intro is not running');
+    this.phase = 'team';
+    this.changed();
+  }
+
+  // Humans who count toward skipping the intro: anyone connected, plus anyone who already asked.
+  skipProgress() {
+    const humans = this.order.map((id) => this.byId(id))
+      .filter((p) => p && !p.bot && (p.connections > 0 || p.id in this.skips));
+    return { asked: humans.filter((p) => p.id in this.skips).length, needed: humans.length };
+  }
+
+  requestSkip(token) {
+    const p = this.requirePlayer(token);
+    if (this.phase !== 'intro') throw new GameError('The intro is over');
+    this.skips[p.id] = true;
+    this.maybeSkip();
+    this.changed();
+  }
+
+  // Also runs on disconnects, so a player who walks away can't hold the skip up.
+  maybeSkip() {
+    if (this.phase !== 'intro') return;
+    const { asked, needed } = this.skipProgress();
+    if (asked > 0 && asked === needed) this.begin();
   }
 
   endGame() {
@@ -413,7 +443,9 @@ class Game {
     let preview = null;
     if (SETUPS[count]) {
       try {
-        preview = { roles: buildRoles(count, this.options).map((r) => ROLES[r].name), error: null };
+        // Lists the roles in play, never who holds them.
+        const roles = buildRoles(count, this.options).map((key) => ({ key, name: ROLES[key].name, team: ROLES[key].team }));
+        preview = { roles, error: null };
       } catch (e) {
         preview = { roles: [], error: e.message };
       }
@@ -424,6 +456,7 @@ class Game {
       minPlayers: MIN_PLAYERS,
       maxPlayers: MAX_PLAYERS,
       preview,
+      skip: this.phase === 'intro' ? this.skipProgress() : null,
       players,
       leaderId: lobby ? null : this.leaderId,
       quests: this.quests.map(({ size, failsNeeded, result, fails }) => ({ size, failsNeeded, result, fails })),
@@ -460,6 +493,7 @@ class Game {
         desc: ROLES[role].desc,
         knows: this.knowledgeFor(p.id),
         isLeader: p.id === this.leaderId,
+        skipRequested: p.id in this.skips,
         myVote: p.id in this.votes ? this.votes[p.id] : null,
         playedCard: p.id in this.cards,
         // Evil players see their own card choice, nobody else does.
