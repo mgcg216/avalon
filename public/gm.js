@@ -1,11 +1,19 @@
 'use strict';
 
-const ROLE_OPTIONS = [
+// Every role, in lobby order. Roles with a `fixed` label can't be switched off.
+const ROLES = [
+  { key: 'merlin', name: 'Merlin', team: 'good', fixed: 'Always', desc: 'Knows who is evil, but must stay hidden.' },
   { key: 'percival', name: 'Percival', team: 'good', desc: 'Sees Merlin and Morgana, but not which is which.' },
+  { key: 'servant', name: 'Loyal Servant of Arthur', team: 'good', fixed: 'Fills seats', desc: 'Knows only their own loyalty.' },
+  { key: 'assassin', name: 'Assassin', team: 'evil', fixed: 'Always', desc: 'Gets one chance to name Merlin if good wins three quests.' },
   { key: 'morgana', name: 'Morgana', team: 'evil', desc: 'Appears as Merlin to Percival.' },
   { key: 'mordred', name: 'Mordred', team: 'evil', desc: 'Hidden from Merlin.' },
   { key: 'oberon', name: 'Oberon', team: 'evil', desc: 'Unknown to the other evil players, and does not know them.' },
+  { key: 'minion', name: 'Minion of Mordred', team: 'evil', fixed: 'Fills seats', desc: 'Knows the other evil players.' },
 ];
+
+// One line per role, safe to show the whole table.
+const ROLE_SUMMARY = Object.fromEntries(ROLES.map((r) => [r.key, r.desc]));
 
 let state = null;
 let joinUrls = [];
@@ -51,12 +59,10 @@ function lobbyHtml(s) {
     </div>
     <div>
       <section class="card">
-        <h3>Optional roles</h3>
-        <p class="muted">Merlin and the Assassin are always in play. Remaining seats are Loyal Servants and Minions.</p>
-        ${ROLE_OPTIONS.map((r) => `<label class="opt">
-          <input type="checkbox" data-opt="${r.key}" ${s.options[r.key] ? 'checked' : ''}>
-          ${roleArt(r.key, r.team, 44)}
-          <span><b class="${r.team}">${r.name}</b><br><span class="muted">${r.desc}</span></span></label>`).join('')}
+        <h3>Roles</h3>
+        <p class="muted">Tick the optional roles you want in this game.</p>
+        ${roleGroupHtml(s, 'good', 'Good')}
+        ${roleGroupHtml(s, 'evil', 'Evil')}
       </section>
       <section class="card">
         ${status}
@@ -64,6 +70,17 @@ function lobbyHtml(s) {
       </section>
     </div>
   </div>`;
+}
+
+function roleGroupHtml(s, team, title) {
+  const rows = ROLES.filter((r) => r.team === team).map((r) => {
+    const body = `${roleArt(r.key, r.team, 44)}
+      <span class="opt-text"><b class="${r.team}">${r.name}</b><br><span class="muted">${r.desc}</span></span>`;
+    return r.fixed
+      ? `<div class="opt">${body}<em class="tag">${r.fixed}</em></div>`
+      : `<label class="opt">${body}<input type="checkbox" data-opt="${r.key}" ${s.options[r.key] ? 'checked' : ''}></label>`;
+  }).join('');
+  return `<h4 class="opt-group ${team}">${teamSeal(team, 24)} ${title}</h4>${rows}`;
 }
 
 function boardHtml(s) {
@@ -130,15 +147,6 @@ function bind() {
 }
 
 // ---------- game start intro ----------
-
-// One line per role, safe to show the whole table.
-const ROLE_SUMMARY = {
-  merlin: 'Knows who is evil, but must stay hidden.',
-  servant: 'Knows only their own loyalty.',
-  assassin: 'Gets one chance to name Merlin if good wins three quests.',
-  minion: 'Knows the other evil players.',
-  ...Object.fromEntries(ROLE_OPTIONS.map((r) => [r.key, r.desc])),
-};
 
 // How long each slide stays up. The game starts when the last one runs out.
 const INTRO_SLIDE_MS = [25000, 30000];
