@@ -182,7 +182,7 @@ function playReveal(q) {
       <div class="reveal-sub">The cards are revealed…${q.failsNeeded > 1 ? ' (two Fails needed)' : ''}</div>
       <div class="qcards">${q.cards.map((ok) => `
         <div class="qcard ${ok ? 'is-success' : 'is-fail'}"><div class="qinner">
-          <div class="qface qback">${roleArt('hidden', 'neutral', '70%')}</div>
+          <div class="qface qback"><img src="art/hidden.webp" alt=""></div>
           <div class="qface qfront">${chaliceArt(ok)}<span>${ok ? 'Success' : 'Fail'}</span></div>
         </div></div>`).join('')}</div>
       <div class="tally">Success <b class="t-ok">0</b> · Fail <b class="t-fail">0</b></div>

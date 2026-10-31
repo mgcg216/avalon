@@ -18,7 +18,7 @@ const PORTRAITS = {
   mordred: [30, 30, 140],
   oberon: [38, 38, 104],
   minion: [25, 25, 110],
-  hidden: [10, 100, 180],
+  hidden: [10, 40, 180],
 };
 
 const RING = {
@@ -76,25 +76,7 @@ function teamSeal(team, size = 40) {
   </svg>`;
 }
 
-// Success: a jewelled gold chalice. Fail: the same chalice, tarnished and overflowing with black.
+// Both quest cards come from one painting at one crop, so the chalice never moves between them.
 function chaliceArt(success) {
-  const id = success ? 'chalice-ok' : 'chalice-bad';
-  const metal = success
-    ? [[0, '#a8761f'], [0.3, '#ffe9a0'], [0.55, '#d9a73c'], [1, '#6a4610']]
-    : [[0, '#3c3a3e'], [0.3, '#a7a5a2'], [0.55, '#615f61'], [1, '#222124']];
-  const gem = success ? '#d3182f' : '#2c2a2e';
-  const stain = success ? '' : `
-    <path d="M26 22 H74 L72 34 C68 30 66 46 62 34 C60 40 58 62 54 38 C50 44 48 56 44 36 C40 42 38 50 34 34 C30 38 28 32 26 22Z" fill="#0a090b"/>
-    <ellipse cx="50" cy="20" rx="24" ry="4" fill="#050506"/>`;
-  return `<svg viewBox="0 0 100 100" class="card-art" aria-hidden="true">
-    <defs>${linear(id, metal, 1, 0)}</defs>
-    <path d="M24 18 H76 C76 44 66 60 54 62 V74 C54 80 66 82 68 90 H32 C34 82 46 80 46 74 V62 C34 60 24 44 24 18Z" fill="url(#${id})" stroke="#2a1c08" stroke-width="1.4"/>
-    <ellipse cx="50" cy="18" rx="26" ry="5" fill="${success ? '#7a4a12' : '#141316'}" stroke="#2a1c08" stroke-width="1.2"/>
-    <path d="M27 32 Q50 40 73 32" stroke="#2a1c08" stroke-width="1" fill="none" opacity=".55"/>
-    <path d="M30 44 Q50 52 70 44" stroke="#2a1c08" stroke-width="1" fill="none" opacity=".55"/>
-    <rect x="44" y="66" width="12" height="4" rx="2" fill="#2a1c08" opacity=".35"/>
-    <g fill="${gem}" stroke="#fff3c4" stroke-opacity=".5" stroke-width=".6">
-      <circle cx="38" cy="38" r="3"/><circle cx="50" cy="41" r="3.8"/><circle cx="62" cy="38" r="3"/></g>
-    ${stain}
-  </svg>`;
+  return `<img class="card-art" src="art/chalice-${success ? 'success' : 'fail'}.webp" alt="" width="480" height="720">`;
 }

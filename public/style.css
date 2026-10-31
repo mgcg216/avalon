@@ -78,7 +78,7 @@ button.reject { background: radial-gradient(ellipse at 38% 28%, #5b5860, #29272d
 button.success, button.fail { display: flex; flex-direction: column; align-items: center; gap: 4px; }
 button.success { background: var(--linen), linear-gradient(180deg, #4a3f55, #2e2836); color: #f3d27a; border-color: #a97a26; }
 button.fail { background: var(--linen), linear-gradient(180deg, #3b3a42, #232228); color: #c9c7cc; border-color: #000; }
-button.success .card-art, button.fail .card-art { width: 56px; height: 56px; }
+button.success .card-art, button.fail .card-art { width: 72px; height: 108px; border-radius: 6px; }
 button.small { padding: 6px 10px; font-size: 12px; }
 .row { display: flex; gap: 10px; flex-wrap: wrap; }
 .row > button { flex: 1; min-width: 120px; }
@@ -264,11 +264,11 @@ label.opt { cursor: pointer; }
   position: absolute; inset: 0; border-radius: 12px; backface-visibility: hidden; -webkit-backface-visibility: hidden;
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
   border: 2px solid #0c0b0d; box-shadow: 0 10px 30px rgba(0, 0, 0, .7);
-  background: var(--linen), radial-gradient(ellipse at 50% 30%, #4a4453, #221f27);
+  background: #111; overflow: hidden;
 }
-.qback .emblem { width: 70%; height: auto; }
+.qback img, .qfront .card-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .qfront { transform: rotateY(180deg); font: 700 clamp(13px, 2.6vw, 22px) var(--serif); letter-spacing: .05em; text-transform: uppercase; }
-.qfront .card-art { width: 74%; order: 1; }
+.qfront span { position: absolute; z-index: 1; top: 0; left: 0; right: 0; padding: 9% 0 14%; text-align: center; text-shadow: 0 2px 4px #000; background: linear-gradient(rgba(5, 4, 6, .78), transparent); }
 .is-success .qfront { color: #f3d27a; }
 .is-fail .qfront { color: #bdbbc2; }
 .qcard.flipped.is-success .qface { box-shadow: 0 0 28px 4px rgba(244, 215, 122, .55); }
