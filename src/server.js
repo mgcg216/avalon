@@ -26,6 +26,7 @@ const MIME = {
   '.svg': 'image/svg+xml',
   '.ico': 'image/x-icon',
   '.woff2': 'font/woff2',
+  '.webp': 'image/webp',
 };
 
 function sendJson(res, status, body) {
@@ -41,7 +42,8 @@ function serveFile(res, file) {
     // no-cache: browsers revalidate every load, so updated pages show up without a hard refresh.
     res.writeHead(200, {
       'Content-Type': MIME[path.extname(full)] || 'application/octet-stream',
-      'Cache-Control': 'no-cache',
+      // Portraits never change, and re-fetching them on each page load would be slow on a Pi.
+      'Cache-Control': path.extname(full) === '.webp' ? 'public, max-age=86400' : 'no-cache',
     });
     res.end(data);
   });

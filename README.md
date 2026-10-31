@@ -41,7 +41,8 @@ npm test           # game-rule tests
 src/game.js      game state + rules (pure, unit-tested)
 src/server.js    two HTTP servers sharing one Game; Server-Sent Events push live state
 public/          player.html/js, gm.html/js, shared common.js + style.css
-public/art.js    original SVG portraits, seals and chalices, inspired by the board game's look
+public/art.js    role cards and medallions, plus SVG seals and chalices
+public/art/      role portraits cropped from public-domain paintings (see CREDITS.md)
 public/fonts/    bundled open-licensed fonts (Cinzel, EB Garamond; see OFL.txt), so play works offline
 test/            node:test suite
 ```
