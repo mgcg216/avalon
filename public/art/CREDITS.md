@@ -19,5 +19,6 @@ No image here comes from the Avalon board game.
 | `quest-success.webp` | Passed quest token | Plate from *The Boy's King Arthur* (p. 16), sword kept and sky repainted dark blue | N. C. Wyeth | 1917 | [Commons](https://commons.wikimedia.org/wiki/File:Boys_King_Arthur_-_N._C._Wyeth_-_p16.jpg) |
 | `quest-fail.webp` | Failed quest token | *Vanitas Still Life with Skull and Hourglass* (detail) | Adriaen Coorte | 1686 | [Commons](https://commons.wikimedia.org/wiki/File:Adriaen_Coorte_-_Vanitas_Still_Life_with_skull_and_hourglass.jpg) |
 | `round-table.webp` | Tabletop | The Winchester Round Table, perspective-corrected from a floor-level photograph and cropped to its rim | Painted for Henry VIII; photographed by Andy Li | c. 1522; photographed 2026 | [Commons](https://commons.wikimedia.org/wiki/File:Round_Table_of_Winchester_2026-07-12.jpg) (CC0) |
+| `castle-stone.webp` | Repeating background | Stone blocks cut from the wall in *The Hostage* and reassembled into a seamless brick pattern | Edmund Blair Leighton | 1912 | [Commons](https://commons.wikimedia.org/wiki/File:Edmund_Blair_Leighton_-_The_Hostage.jpg) |
 
 Commons dates the Wyeth scans to the 1922 printing; the book first appeared in 1917.

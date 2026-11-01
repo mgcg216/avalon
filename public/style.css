@@ -26,7 +26,7 @@
 
 body {
   margin: 0;
-  background: linear-gradient(rgba(14, 13, 16, .8), rgba(14, 13, 16, .9)), url(stone.svg) var(--bg);
+  background: linear-gradient(rgba(14, 13, 16, .5), rgba(14, 13, 16, .66)), url(art/castle-stone.webp) 0 0 / 520px var(--bg);
   color: var(--text);
   font: 18px/1.4 var(--body);
   font-variant-numeric: lining-nums;
@@ -37,7 +37,7 @@ main.wide { max-width: 1100px; }
 
 header {
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
-  padding: 12px 16px; background: linear-gradient(rgba(20, 18, 16, .35), rgba(20, 18, 16, .6)), url(stone.svg) center;
+  padding: 12px 16px; background: linear-gradient(rgba(20, 18, 16, .35), rgba(20, 18, 16, .6)), url(art/castle-stone.webp) 0 0 / 520px;
   border-bottom: 3px solid #0a0908; box-shadow: 0 3px 12px rgba(0,0,0,.7);
 }
 header h1 {
@@ -244,7 +244,7 @@ label.opt { cursor: pointer; }
 .reveal-overlay {
   position: fixed; inset: 0; z-index: 50; overflow-y: auto;
   display: flex; align-items: center; justify-content: center; padding: 16px;
-  background: radial-gradient(circle at 50% 45%, rgba(46, 38, 28, .9), rgba(4, 3, 4, .98)), url(stone.svg) #0a090b;
+  background: radial-gradient(circle at 50% 45%, rgba(46, 38, 28, .9), rgba(4, 3, 4, .98)), url(art/castle-stone.webp) 0 0 / 520px #0a090b;
   animation: fade-in .5s ease;
 }
 .reveal-overlay.closing { animation: fade-out .4s ease forwards; }
@@ -289,7 +289,7 @@ label.opt { cursor: pointer; }
 .flash.gold { background: radial-gradient(circle, rgba(255, 220, 120, .3), transparent 70%); animation: flash .6s ease-out; }
 
 /* ---------- game start intro ---------- */
-.reveal-overlay.intro { background: radial-gradient(circle at 50% 45%, rgba(46, 38, 28, .94), rgba(4, 3, 4, .99)), url(stone.svg) #0a090b; }
+.reveal-overlay.intro { background: radial-gradient(circle at 50% 45%, rgba(46, 38, 28, .94), rgba(4, 3, 4, .99)), url(art/castle-stone.webp) 0 0 / 520px #0a090b; }
 .reveal-overlay.intro .reveal-box { max-width: 960px; margin: auto; } /* auto margin keeps tall slides scrollable */
 .intro-slide { animation: slide-in .7s ease; }
 .intro-text { font: clamp(19px, 2.6vw, 27px)/1.4 var(--body); margin: 16px 0 0; }
