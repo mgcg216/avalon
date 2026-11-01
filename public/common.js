@@ -75,7 +75,7 @@ function playerName(s, id) {
 function questTrack(s) {
   return `<div class="quests">${s.quests.map((q, i) => {
     const cls = q.result ? q.result : (i === s.questIdx && s.phase !== 'over' && s.phase !== 'assassin' ? 'current' : '');
-    const label = q.result ? teamSeal(q.result === 'success' ? 'good' : 'evil', '100%') : q.size;
+    const label = q.result ? `<img src="art/quest-${q.result}.webp" alt="${q.result}">` : q.size;
     const sub = q.result === 'fail' ? `${q.fails} fail${q.fails === 1 ? '' : 's'}`
       : q.failsNeeded > 1 ? '2 fails' : `Quest ${i + 1}`;
     return `<div class="quest ${cls}" title="Quest ${i + 1}: ${q.size} knights">
